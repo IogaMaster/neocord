@@ -85,3 +85,6 @@ require("neocord").setup({
     line_number_text    = "Line %s out of %s",        -- Format string rendered when `enable_line_number` is set to true (either string or function(line_number: number, line_count: number): string)
 })
 ```
+
+## Special Thanks:
+- [vscord](https://github.com/leonardssh/vscord) for the [icons](https://github.com/leonardssh/vscord/tree/main/assets/icons).
