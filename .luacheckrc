@@ -4,4 +4,5 @@ globals = {
 
 exclude_files = {
     "lua/deps",
+    ".direnv/*"
 }
