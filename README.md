@@ -1,6 +1,6 @@
 
 <h1 align="center">
-    <img src="./assets/logo.png" width=256 alt="neocord">&#x200B;
+    <img src="./assets/logos/Neovim.png" width=256 alt="neocord">&#x200B;
 </h1>
 <h2 align="center">
     A Discord <a href="https://discord.com/rich-presence">Rich Presence</a> plugin for  <a href="https://neovim.io">Neovim</a>
