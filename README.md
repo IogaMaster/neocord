@@ -32,6 +32,8 @@
 ## Features
 * Light and unobtrusive
 * Written in Pure Lua and is [highly configurable](#configuration)
+* Custom logo if desired.
+* Great looking icons!
 
 ## Installation
 Use your favorite plugin manager
@@ -39,7 +41,6 @@ Use your favorite plugin manager
 ```lua
 { 
     'IogaMaster/neocord',
-    lazy = false,
 }
 ```
 * [packer.nvim](https://github.com/wbthomason/packer.nvim):
