@@ -10,7 +10,7 @@ function neocord#SetAutoCmds()
             autocmd WinLeave * lua package.loaded.neocord:handle_win_leave()
             autocmd BufEnter * lua package.loaded.neocord:handle_buf_enter()
             autocmd BufAdd * lua package.loaded.neocord:handle_buf_add()
-            autocmd VimEnter * lua package.loaded.neocord:handle_vim_enter()
+            autocmd UIEnter * lua package.loaded.neocord:handle_ui_enter()
         endif
     augroup END
 endfunction

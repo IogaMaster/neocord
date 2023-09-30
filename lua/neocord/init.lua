@@ -1170,7 +1170,7 @@ function neocord:handle_win_leave()
     end)
 end
 
-function neocord:handle_vim_enter()
+function neocord:handle_ui_enter()
     self.log:debug("Handling VimEnter event...")
 
     if vim.bo.filetype == "qf" then
