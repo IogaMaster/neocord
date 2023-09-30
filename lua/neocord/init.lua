@@ -1171,7 +1171,7 @@ function neocord:handle_win_leave()
 end
 
 function neocord:handle_ui_enter()
-    self.log:debug("Handling VimEnter event...")
+    self.log:debug("Handling UIEnter event...")
 
     if vim.bo.filetype == "qf" then
         self.log:debug("Skipping neocord update for quickfix window...")
