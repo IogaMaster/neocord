@@ -66,6 +66,7 @@ function neocord:setup(...)
     end
 
     -- General options
+    utils.set_option(self, "auto_update", true)                -- Your discord application id
     utils.set_option(self, "client_id", "1157438221865717891") -- Your discord application id
     utils.set_option(self, "logo", "auto")                     -- auto or url
     utils.set_option(self, "editing_text", "Editing %s")
@@ -75,6 +76,7 @@ function neocord:setup(...)
     utils.set_option(self, "dashboard_text", "Viewing %s Dashboard")
     utils.set_option(self, "reading_text", "Reading %s")
     utils.set_option(self, "workspace_text", "Working on %s")
+    utils.set_option(self, "blacklist", {})
     utils.set_option(self, "terminal_text", "Using terminal")
     utils.set_option(self, "line_number_text", "Line %s out of %s")
     utils.set_option(self, "show_time", true)
