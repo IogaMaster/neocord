@@ -15,6 +15,7 @@ local serpent = require("deps.serpent")
 local file_explorers = require("neocord.filetypes.file_explorers")
 local default_file_assets = require("neocord.filetypes.file_assets")
 local plugin_managers = require("neocord.filetypes.plugin_managers")
+local dashboards = require("neocord.filetypes.dashboards")
 local Discord = require("lib.discord")
 local utils = require("neocord.utils")
 
@@ -71,6 +72,7 @@ function neocord:setup(...)
     utils.set_option(self, "file_explorer_text", "Browsing %s")
     utils.set_option(self, "git_commit_text", "Committing changes")
     utils.set_option(self, "plugin_manager_text", "Managing plugins")
+    utils.set_option(self, "dashboard_text", "Viewing %s Dashboard")
     utils.set_option(self, "reading_text", "Reading %s")
     utils.set_option(self, "workspace_text", "Working on %s")
     utils.set_option(self, "terminal_text", "Using terminal")
@@ -386,12 +388,15 @@ function neocord:get_status_text(filename)
     local file_explorer = file_explorers[vim.bo.filetype:match("[^%d]+")]
         or file_explorers[(filename or ""):match("[^%d]+")]
     local plugin_manager = plugin_managers[vim.bo.filetype]
+    local dashboard = dashboards[vim.bo.filetype]
     local terminal = vim.api.nvim_get_mode()["mode"] == "t"
 
     if file_explorer then
         return self:format_status_text("file_explorer", file_explorer)
     elseif plugin_manager then
         return self:format_status_text("plugin_manager", plugin_manager)
+    elseif dashboard then
+        return self:format_status_text("dashboard", dashboard)
     end
 
     if not filename or filename == "" then
@@ -1148,6 +1153,17 @@ function neocord:handle_win_leave()
         self.log:debug("Canceling neocord due to leaving window...")
         self:cancel()
     end)
+end
+
+function neocord:handle_vim_enter()
+    self.log:debug("Handling VimEnter event...")
+
+    if vim.bo.filetype == "qf" then
+        self.log:debug("Skipping neocord update for quickfix window...")
+        return
+    end
+
+    self:update()
 end
 
 -- BufEnter events force-update the neocord for the current buffer unless it's a quickfix window
