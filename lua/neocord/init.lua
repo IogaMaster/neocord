@@ -1137,17 +1137,13 @@ function Presence:sync_self_activity()
       end
     end
 
-    self:call_remote_method(
-      peer.socket,
-      "sync_peer_activity",
+    self:call_remote_method(peer.socket, "sync_peer_activity", {
       {
-        {
-          last_activity = self.last_activity,
-          peers = peers,
-          workspaces = self.workspaces,
-        },
-      }
-    )
+        last_activity = self.last_activity,
+        peers = peers,
+        workspaces = self.workspaces,
+      },
+    })
   end
 end
 
