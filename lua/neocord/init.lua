@@ -16,6 +16,7 @@ local file_explorers = require("neocord.utils.file_explorers")
 local default_file_assets = require("neocord.utils.file_assets")
 local plugin_managers = require("neocord.utils.plugin_managers")
 local Discord = require("lib.discord")
+local utils = require("neocord.utils")
 
 function neocord:setup(...)
     -- Support setup invocation via both dot and colon syntax.
@@ -32,7 +33,7 @@ function neocord:setup(...)
     self.options = options
 
     -- Initialize logger
-    self:set_option("log_level", nil, false)
+    utils.set_option(self, "log_level", "error", false)
     self.log = log:init({ level = options.log_level })
 
     -- Get operating system information including path separator
@@ -64,25 +65,17 @@ function neocord:setup(...)
     end
 
     -- General options
-    self:set_option("auto_update", 1)
-    self:set_option("client_id", "1157438221865717891")
-    self:set_option("debounce_timeout", 10)
-    self:set_option("main_image", "neovim")
-    self:set_option("neovim_image_text", "The One True Text Editor")
-    self:set_option("enable_line_number", false)
-    -- Status text options
-    self:set_option("editing_text", "Editing %s")
-    self:set_option("file_explorer_text", "Browsing %s")
-    self:set_option("git_commit_text", "Committing changes")
-    self:set_option("plugin_manager_text", "Managing plugins")
-    self:set_option("reading_text", "Reading %s")
-    self:set_option("workspace_text", "Working on %s")
-    self:set_option("line_number_text", "Line %s out of %s")
-    self:set_option("blacklist", {})
-    self:set_option("buttons", true)
-    self:set_option("show_time", true)
-    -- File assets options
-    self:set_option("file_assets", {})
+    utils.set_option(self, "client_id", "1157438221865717891") -- Your discord application id
+    utils.set_option(self, "logo", "auto")                     -- auto or url
+    utils.set_option(self, "editing_text", "Editing %s")
+    utils.set_option(self, "file_explorer_text", "Browsing %s")
+    utils.set_option(self, "git_commit_text", "Committing changes")
+    utils.set_option(self, "plugin_manager_text", "Managing plugins")
+    utils.set_option(self, "reading_text", "Reading %s")
+    utils.set_option(self, "workspace_text", "Working on %s")
+    utils.set_option(self, "line_number_text", "Line %s out of %s")
+    utils.set_option(self, "show_time", true)
+    utils.set_option(self, "file_assets", {})
     for name, asset in pairs(default_file_assets) do
         if not self.options.file_assets[name] then
             self.options.file_assets[name] = asset
@@ -119,6 +112,9 @@ function neocord:setup(...)
     -- Set autocommands
     vim.fn["neocord#SetAutoCmds"]()
 
+    -- Set logo
+
+
     self.log:info("Completed plugin setup")
 
     -- Set global variable to indicate plugin has been set up
@@ -142,45 +138,6 @@ function neocord.get_os_name(uname)
 
     return "unknown"
 end
-
--- To ensure consistent option values, coalesce true and false values to 1 and 0
-function neocord.coalesce_option(value)
-    if type(value) == "boolean" then
-        return value and 1 or 0
-    end
-
-    return value
-end
-
--- Set option using either vim global or setup table
-function neocord:set_option(option, default, validate)
-    default = self.coalesce_option(default)
-    validate = validate == nil and true or validate
-
-    local g_variable = string.format("neocord_%s", option)
-
-    self.options[option] = self.coalesce_option(self.options[option])
-
-    if validate then
-        -- Warn on any duplicate user-defined options
-        self:check_dup_options(option)
-    end
-
-    self.options[option] = self.options[option] or vim.g[g_variable] or default
-end
-
--- Check and warn for duplicate user-defined options
-function neocord:check_dup_options(option)
-    local g_variable = string.format("neocord_%s", option)
-
-    if self.options[option] ~= nil and vim.g[g_variable] ~= nil then
-        local warning_fmt = "Duplicate options: `g:%s` and setup option `%s`"
-        local warning_msg = string.format(warning_fmt, g_variable, option)
-
-        self.log:warn(warning_msg)
-    end
-end
-
 -- Check the Discord socket at the given path
 function neocord:check_discord_socket(path)
     self.log:debug(string.format("Checking Discord IPC socket at %s...", path))
@@ -774,12 +731,17 @@ function neocord:update_for_buffer(buffer, should_debounce)
     -- Construct activity asset information
     local file_text = description or name
     local neovim_image_text = self.options.neovim_image_text
-    local use_file_as_main_image = self.options.main_image == "file"
+    local logo
+    if self.options.logo == "auto" then
+        logo = utils.get_logo_url(utils.get_nvim_distro())
+    else
+        logo = self.options.logo
+    end
     local assets = {
-        large_image = use_file_as_main_image and asset_key or "neovim",
-        large_text = use_file_as_main_image and file_text or neovim_image_text,
-        small_image = use_file_as_main_image and "neovim" or asset_key,
-        small_text = use_file_as_main_image and neovim_image_text or file_text,
+        large_image = utils.get_asset_url(asset_key),
+        large_text = file_text,
+        small_image = logo,
+        small_text = utils.get_nvim_distro(),
     }
 
     local activity = {
@@ -789,15 +751,6 @@ function neocord:update_for_buffer(buffer, should_debounce)
             start = relative_activity_set_at,
         } or nil,
     }
-
-    -- Add button that links to the git workspace remote origin url
-    if self.options.buttons ~= 0 then
-        local buttons = self:get_buttons(buffer, parent_dirpath)
-        if buttons then
-            self.log:debug(string.format("Attaching buttons to activity: %s", vim.inspect(buttons)))
-            activity.buttons = buttons
-        end
-    end
 
     -- Get the current line number and line count if the user has set the enable_line_number option
     if self.options.enable_line_number == 1 then
