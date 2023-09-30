@@ -720,7 +720,7 @@ function neocord:update_for_buffer(buffer, should_debounce)
 
     -- Determine image text and asset key
     local name = filename
-    local asset_key = "code"
+    local asset_key = "text"
     local description = filename
     local file_asset = self.options.file_assets[filename] or self.options.file_assets[extension]
     if file_asset then
