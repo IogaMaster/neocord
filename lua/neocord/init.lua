@@ -760,11 +760,18 @@ function neocord:update_for_buffer(buffer, should_debounce)
         distro_text = utils.get_nvim_distro()
     end
 
+    local icon
+    if string.match(vim.bo.filetype, "git") then
+        icon = "git"
+    else
+        icon = asset_key
+    end
+
     if self.options.logo_tooltip ~= nil then
         distro_text = self.options.logo_tooltip
     end
     local assets = {
-        large_image = utils.get_asset_url(asset_key),
+        large_image = utils.get_asset_url(icon),
         large_text = file_text,
         small_image = logo,
         small_text = distro_text,
