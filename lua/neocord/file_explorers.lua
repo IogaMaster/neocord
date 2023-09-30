@@ -6,5 +6,6 @@ return {
   ["netrw"] = "Netrw",
   ["TelescopePrompt"] = "Telescope",
   ["neo-tree"] = "Neotree",
+  ["oil"] = "oil",
   ["fern"] = "Fern",
 }
