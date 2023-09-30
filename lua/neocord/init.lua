@@ -69,6 +69,7 @@ function neocord:setup(...)
     utils.set_option(self, "auto_update", true)                -- Your discord application id
     utils.set_option(self, "client_id", "1157438221865717891") -- Your discord application id
     utils.set_option(self, "logo", "auto")                     -- auto or url
+    utils.set_option(self, "logo_tooltip", nil)                -- nil or string
     utils.set_option(self, "editing_text", "Editing %s")
     utils.set_option(self, "file_explorer_text", "Browsing %s")
     utils.set_option(self, "git_commit_text", "Committing changes")
@@ -757,6 +758,10 @@ function neocord:update_for_buffer(buffer, should_debounce)
         distro_text = string.format("%s in %s", utils.get_nvim_distro(), utils.get_gui_info())
     else
         distro_text = utils.get_nvim_distro()
+    end
+
+    if self.options.logo_tooltip ~= nil then
+        distro_text = self.options.logo_tooltip
     end
     local assets = {
         large_image = utils.get_asset_url(asset_key),
