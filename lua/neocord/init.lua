@@ -15,7 +15,7 @@ local serpent = require("deps.serpent")
 local file_explorers = require("neocord.file_explorers")
 local default_file_assets = require("neocord.file_assets")
 local plugin_managers = require("neocord.plugin_managers")
-local Discord = require("neocord.discord")
+local Discord = require("lib.discord")
 
 function neocord:setup(...)
   -- Support setup invocation via both dot and colon syntax.
