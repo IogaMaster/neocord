@@ -143,6 +143,7 @@ function neocord.get_os_name(uname)
 
     return "unknown"
 end
+
 -- Check the Discord socket at the given path
 function neocord:check_discord_socket(path)
     self.log:debug(string.format("Checking Discord IPC socket at %s...", path))
@@ -405,18 +406,18 @@ function neocord:get_status_text(filename)
         return nil
     end
 
-    if terminal then
-        return self:format_status_text("terminal", terminal)
+    if string.find(vim.bo.filetype, "git") then
+        return self:format_status_text("git_commit", filename)
+    elseif filename then
+        return self:format_status_text("editing", filename)
     end
 
-    if vim.bo.modifiable and not vim.bo.readonly then
-        if vim.bo.filetype == "gitcommit" then
-            return self:format_status_text("git_commit", filename)
-        elseif filename then
-            return self:format_status_text("editing", filename)
-        end
-    elseif filename then
+    if vim.bo.readonly then
         return self:format_status_text("reading", filename)
+    end
+
+    if terminal then
+        return self:format_status_text("terminal", terminal)
     end
 end
 
