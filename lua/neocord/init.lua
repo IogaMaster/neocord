@@ -12,9 +12,9 @@ neocord.workspaces = {}
 local log = require("lib.log")
 local msgpack = require("deps.msgpack")
 local serpent = require("deps.serpent")
-local file_explorers = require("neocord.file_explorers")
-local default_file_assets = require("neocord.file_assets")
-local plugin_managers = require("neocord.plugin_managers")
+local file_explorers = require("neocord.utils.file_explorers")
+local default_file_assets = require("neocord.utils.file_assets")
+local plugin_managers = require("neocord.utils.plugin_managers")
 local Discord = require("lib.discord")
 
 function neocord:setup(...)
