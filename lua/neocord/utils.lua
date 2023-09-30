@@ -16,6 +16,14 @@ function utils.get_nvim_distro()
     end
 end
 
+function utils.get_gui_info()
+    local info = vim.api.nvim_get_chan_info(1).client
+    if info.type == "ui" then
+        return info.name
+    end
+    return nil
+end
+
 function utils.module_exists(module)
     local present, presence = pcall(require, module)
 

@@ -737,11 +737,18 @@ function neocord:update_for_buffer(buffer, should_debounce)
     else
         logo = self.options.logo
     end
+
+    local distro_text
+    if utils.get_gui_info() ~= nil then
+        distro_text = string.format("%s in %s", utils.get_nvim_distro(), utils.get_gui_info())
+    else
+        distro_text = utils.get_nvim_distro()
+    end
     local assets = {
         large_image = utils.get_asset_url(asset_key),
         large_text = file_text,
         small_image = logo,
-        small_text = utils.get_nvim_distro(),
+        small_text = distro_text,
     }
 
     local activity = {
