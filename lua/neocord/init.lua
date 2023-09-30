@@ -1,74 +1,23 @@
---------------------------------------------------
---     ____                                     --
---    / __ \________  ________  ____  ________  --
---   / /_/ / ___/ _ \/ ___/ _ \/ __ \/ ___/ _ \ --
---  / ____/ /  /  __(__  )  __/ / / / /__/  __/ --
--- /_/   /_/   \___/____/\___/_/ /_/\___/\___/  --
---                                              --
---   Discord Rich Presence plugin for Neovim.   --
---------------------------------------------------
---
--- Nvim peer-to-peer runtime state shape example:
---
--- Presence = {
---     id = "ee1fc18f-2c81-4b88-b92e-cb801fbe8d85",
---     workspace = "/Users/user/Code/presence.nvim",
---     socket = "/var/folders/mm/8qfxwcdn29s8d_rzmj7bqxb40000gn/T/nvim9pEtTD/0",
---
---     -- Last activity set by current client or any peer instance
---     last_activity = {
---         file = "/Users/user/Code/presence.nvim/README.md",
---         workspace = "/Users/user/Code/presence.nvim",
---         set_at = 1616033523,
---     },
---
---     -- Other remote Neovim instances (peers)
---     peers = {
---         ["dd5eeafe-8d0d-44d7-9850-45d3884be1a0"] = {
---             workspace = "/Users/user/Code/presence.nvim",
---             socket = "/var/folders/mm/8qfxwcdn29s8d_rzmj7bqxb40000gn/T/nvim9pEtTD/0",
---         },
---         ["346750e6-c416-44ff-98f3-eb44ea2ef15d"] = {
---             workspace = "/Users/user/Code/presence.nvim",
---             socket = "/var/folders/mm/8qfxwcdn29s8d_rzmj7bqxb40000gn/T/nvim09n664/0",
---         }
---     },
---
---     -- Workspace states across all peers
---     workspaces = {
---         ["/Users/user/Code/dotfiles"] = {
---             started_at = 1616033505,
---             updated_at = 1616033505
---         },
---         ["/Users/user/Code/presence.nvim"] = {
---             started_at = 1616033442,
---             updated_at = 1616033523
---         },
---     },
---
---     ... other methods and member variables
--- }
---
-local Presence = {}
-Presence.is_authorized = false
-Presence.is_authorizing = false
-Presence.is_connected = false
-Presence.is_connecting = false
-Presence.last_activity = {}
-Presence.peers = {}
-Presence.socket = vim.v.servername
-Presence.workspace = nil
-Presence.workspaces = {}
+local neocord = {}
+neocord.is_authorized = false
+neocord.is_authorizing = false
+neocord.is_connected = false
+neocord.is_connecting = false
+neocord.last_activity = {}
+neocord.peers = {}
+neocord.socket = vim.v.servername
+neocord.workspace = nil
+neocord.workspaces = {}
 
 local log = require("lib.log")
 local msgpack = require("deps.msgpack")
 local serpent = require("deps.serpent")
-local file_explorers = require("presence.file_explorers")
-local default_file_assets = require("presence.file_assets")
-local plugin_managers = require("presence.plugin_managers")
-local Discord = require("presence.discord")
+local file_explorers = require("neocord.file_explorers")
+local default_file_assets = require("neocord.file_assets")
+local plugin_managers = require("neocord.plugin_managers")
+local Discord = require("neocord.discord")
 
-function Presence:setup(...)
+function neocord:setup(...)
   -- Support setup invocation via both dot and colon syntax.
   -- To maintain backwards compatibility, colon syntax will still
   -- be supported, but dot syntax should be recommended.
@@ -76,7 +25,7 @@ function Presence:setup(...)
   local options = args[1]
   if #args == 0 then
     options = self
-    self = Presence
+    self = neocord
   end
 
   options = options or {}
@@ -168,7 +117,7 @@ function Presence:setup(...)
   vim.api.nvim_set_var("presence_auto_update", options.auto_update)
 
   -- Set autocommands
-  vim.fn["presence#SetAutoCmds"]()
+  vim.fn["neocord#SetAutoCmds"]()
 
   self.log:info("Completed plugin setup")
 
@@ -182,7 +131,7 @@ function Presence:setup(...)
 end
 
 -- Normalize the OS name from uname
-function Presence.get_os_name(uname)
+function neocord.get_os_name(uname)
   if uname.sysname:find("Windows") then
     return "windows"
   elseif uname.sysname:find("Darwin") then
@@ -195,7 +144,7 @@ function Presence.get_os_name(uname)
 end
 
 -- To ensure consistent option values, coalesce true and false values to 1 and 0
-function Presence.coalesce_option(value)
+function neocord.coalesce_option(value)
   if type(value) == "boolean" then
     return value and 1 or 0
   end
@@ -204,7 +153,7 @@ function Presence.coalesce_option(value)
 end
 
 -- Set option using either vim global or setup table
-function Presence:set_option(option, default, validate)
+function neocord:set_option(option, default, validate)
   default = self.coalesce_option(default)
   validate = validate == nil and true or validate
 
@@ -221,7 +170,7 @@ function Presence:set_option(option, default, validate)
 end
 
 -- Check and warn for duplicate user-defined options
-function Presence:check_dup_options(option)
+function neocord:check_dup_options(option)
   local g_variable = string.format("presence_%s", option)
 
   if self.options[option] ~= nil and vim.g[g_variable] ~= nil then
@@ -233,7 +182,7 @@ function Presence:check_dup_options(option)
 end
 
 -- Check the Discord socket at the given path
-function Presence:check_discord_socket(path)
+function neocord:check_discord_socket(path)
   self.log:debug(string.format("Checking Discord IPC socket at %s...", path))
 
   -- Asynchronously check socket path via stat
@@ -254,9 +203,9 @@ function Presence:check_discord_socket(path)
   end)
 end
 
--- Send a nil activity to unset the presence
-function Presence:cancel()
-  self.log:debug("Canceling Discord presence...")
+-- Send a nil activity to unset the neocord
+function neocord:cancel()
+  self.log:debug("Canceling Discord neocord...")
 
   if not self.discord:is_connected() then
     return
@@ -268,12 +217,12 @@ function Presence:cancel()
       return
     end
 
-    self.log:info("Canceled Discord presence")
+    self.log:info("Canceled Discord neocord")
   end)
 end
 
 -- Call a command on a remote Neovim instance at the provided IPC path
-function Presence:call_remote_nvim_instance(socket, command)
+function neocord:call_remote_nvim_instance(socket, command)
   local remote_nvim_instance = vim.loop.new_pipe(true)
 
   remote_nvim_instance:connect(socket, function()
@@ -287,9 +236,9 @@ function Presence:call_remote_nvim_instance(socket, command)
   end)
 end
 
--- Call a Presence method on a remote instance with a given list of arguments
-function Presence:call_remote_method(socket, name, args)
-  local command_fmt = "lua package.loaded.presence:%s(%s)"
+-- Call a neocord method on a remote instance with a given list of arguments
+function neocord:call_remote_method(socket, name, args)
+  local command_fmt = "lua package.loaded.neocord:%s(%s)"
 
   -- Stringify the list of args
   for i = 1, #args do
@@ -309,7 +258,7 @@ function Presence:call_remote_method(socket, name, args)
   self:call_remote_nvim_instance(socket, command)
 end
 
-function Presence:connect(on_done)
+function neocord:connect(on_done)
   self.log:debug("Connecting to Discord...")
 
   self.is_connecting = true
@@ -337,7 +286,7 @@ function Presence:connect(on_done)
   end)
 end
 
-function Presence:authorize(on_done)
+function neocord:authorize(on_done)
   self.log:debug("Authorizing with Discord...")
 
   -- Track authorization state to avoid race conditions
@@ -367,7 +316,7 @@ function Presence:authorize(on_done)
 end
 
 -- Find the Discord socket from temp runtime directories
-function Presence:get_discord_socket_path()
+function neocord:get_discord_socket_path()
   local sock_name = "discord-ipc-0"
   local sock_path = nil
 
@@ -408,13 +357,13 @@ function Presence:get_discord_socket_path()
 end
 
 -- Gets the file path of the current vim buffer
-function Presence.get_current_buffer()
+function neocord.get_current_buffer()
   local current_buffer = vim.api.nvim_get_current_buf()
   return vim.api.nvim_buf_get_name(current_buffer)
 end
 
 -- Gets the current project name
-function Presence:get_project_name(file_path)
+function neocord:get_project_name(file_path)
   if not file_path then
     return nil
   end
@@ -449,22 +398,22 @@ function Presence:get_project_name(file_path)
 end
 
 -- Get the name of the parent directory for the given path
-function Presence.get_dir_path(path, path_separator)
+function neocord.get_dir_path(path, path_separator)
   return path:match(string.format("^(.+%s.+)%s.*$", path_separator, path_separator))
 end
 
 -- Get the name of the file for the given path
-function Presence.get_filename(path, path_separator)
+function neocord.get_filename(path, path_separator)
   return path:match(string.format("^.+%s(.+)$", path_separator))
 end
 
 -- Get the file extension for the given filename
-function Presence.get_file_extension(path)
+function neocord.get_file_extension(path)
   return path:match("^.+%.(.+)$")
 end
 
 -- Format any status text via options and support custom formatter functions
-function Presence:format_status_text(status_type, ...)
+function neocord:format_status_text(status_type, ...)
   local option_name = string.format("%s_text", status_type)
   local text_option = self.options[option_name]
   if type(text_option) == "function" then
@@ -475,7 +424,7 @@ function Presence:format_status_text(status_type, ...)
 end
 
 -- Get the status text for the current buffer
-function Presence:get_status_text(filename)
+function neocord:get_status_text(filename)
   local file_explorer = file_explorers[vim.bo.filetype:match("[^%d]+")]
     or file_explorers[(filename or ""):match("[^%d]+")]
   local plugin_manager = plugin_managers[vim.bo.filetype]
@@ -502,7 +451,7 @@ function Presence:get_status_text(filename)
 end
 
 -- Get all local nvim socket paths
-function Presence:get_nvim_socket_paths(on_done)
+function neocord:get_nvim_socket_paths(on_done)
   self.log:debug("Getting nvim socket paths...")
   local sockets = {}
   local parser = {}
@@ -612,7 +561,7 @@ function Presence:get_nvim_socket_paths(on_done)
 end
 
 -- Wrap calls to Discord that require prior connection and authorization
-function Presence.discord_event(on_ready)
+function neocord.discord_event(on_ready)
   return function(self, ...)
     if not self.discord.ipc_socket then
       self.log:debug("Discord IPC socket not found, skipping...")
@@ -654,7 +603,7 @@ function Presence.discord_event(on_ready)
 end
 
 -- Check if the current project/parent is in blacklist
-function Presence:check_blacklist(buffer, parent_dirpath, project_dirpath)
+function neocord:check_blacklist(buffer, parent_dirpath, project_dirpath)
   local parent_dirname = nil
   local project_dirname = nil
 
@@ -700,7 +649,7 @@ function Presence:check_blacklist(buffer, parent_dirpath, project_dirpath)
 end
 
 -- Get either user-configured buttons or the create default "View Repository" button definition
-function Presence:get_buttons(buffer, parent_dirpath)
+function neocord:get_buttons(buffer, parent_dirpath)
   -- User configured a static buttons table
   if type(self.options.buttons) == "table" then
     local is_plural = #self.options.buttons > 1
@@ -771,8 +720,8 @@ function Presence:get_buttons(buffer, parent_dirpath)
   return nil
 end
 
--- Update Rich Presence for the provided vim buffer
-function Presence:update_for_buffer(buffer, should_debounce)
+-- Update Rich neocord for the provided vim buffer
+function neocord:update_for_buffer(buffer, should_debounce)
   -- Avoid unnecessary updates if the previous activity was for the current buffer
   -- (allow same-buffer updates when line numbers are enabled)
   if self.options.enable_line_number == 0 and self.last_activity.file == buffer then
@@ -940,15 +889,15 @@ function Presence:update_for_buffer(buffer, should_debounce)
   end)
 end
 
--- Update Rich Presence for the current or provided vim buffer for an authorized connection
-Presence.update = Presence.discord_event(function(self, buffer, should_debounce)
+-- Update Rich neocord for the current or provided vim buffer for an authorized connection
+neocord.update = neocord.discord_event(function(self, buffer, should_debounce)
   -- Default update to not debounce by default
   if should_debounce == nil then
     should_debounce = false
   end
 
-  -- Debounce Rich Presence updates (default to 10 seconds):
-  -- https://discord.com/developers/docs/rich-presence/how-to#updating-presence
+  -- Debounce Rich neocord updates (default to 10 seconds):
+  -- https://discord.com/developers/docs/rich-neocord/how-to#updating-neocord
   local last_updated_at = self.last_activity.set_at
   local debounce_timeout = self.options.debounce_timeout
   local should_skip = should_debounce
@@ -972,11 +921,11 @@ Presence.update = Presence.discord_event(function(self, buffer, should_debounce)
 end)
 
 --------------------------------------------------
--- Presence peer-to-peer API
+-- neocord peer-to-peer API
 --------------------------------------------------
 
 -- Register some remote peer
-function Presence:register_peer(id, socket)
+function neocord:register_peer(id, socket)
   self.log:debug(string.format("Registering peer %s...", id))
 
   self.peers[id] = {
@@ -988,7 +937,7 @@ function Presence:register_peer(id, socket)
 end
 
 -- Unregister some remote peer
-function Presence:unregister_peer(id, peer)
+function neocord:unregister_peer(id, peer)
   self.log:debug(string.format("Unregistering peer %s... %s", id, vim.inspect(peer)))
 
   -- Remove workspace if no other peers share the same workspace
@@ -1027,13 +976,13 @@ function Presence:unregister_peer(id, peer)
 end
 
 -- Unregister some remote peer and set activity
-function Presence:unregister_peer_and_set_activity(id, peer)
+function neocord:unregister_peer_and_set_activity(id, peer)
   self:unregister_peer(id, peer)
   self:update()
 end
 
 -- Register a remote peer and sync its data
-function Presence:register_and_sync_peer(id, socket)
+function neocord:register_and_sync_peer(id, socket)
   self:register_peer(id, socket)
 
   self.log:debug("Syncing data with newly registered peer...")
@@ -1064,7 +1013,7 @@ end
 
 -- Register self to any remote Neovim instances
 -- Simply emits to all nvim sockets as we have not yet been synced with peer list
-function Presence:register_self()
+function neocord:register_self()
   self:get_nvim_socket_paths(function(sockets)
     if #sockets == 0 then
       self.log:debug("No other remote nvim instances")
@@ -1087,7 +1036,7 @@ function Presence:register_self()
 end
 
 -- Unregister self to all peers
-function Presence:unregister_self()
+function neocord:unregister_self()
   local self_as_peer = {
     socket = self.socket,
     workspace = self.workspace,
@@ -1107,7 +1056,7 @@ function Presence:unregister_self()
 end
 
 -- Sync self with data from a remote peer
-function Presence:sync_self(data)
+function neocord:sync_self(data)
   self.log:debug(string.format("Syncing data from remote peer...", vim.inspect(data)))
 
   for key, value in pairs(data) do
@@ -1118,7 +1067,7 @@ function Presence:sync_self(data)
 end
 
 -- Sync activity set by self to all peers
-function Presence:sync_self_activity()
+function neocord:sync_self_activity()
   local self_as_peer = {
     socket = self.socket,
     workspace = self.workspace,
@@ -1148,13 +1097,13 @@ function Presence:sync_self_activity()
 end
 
 -- Sync activity set by peer
-function Presence:sync_peer_activity(data)
+function neocord:sync_peer_activity(data)
   self.log:debug(string.format("Syncing peer activity %s...", vim.inspect(data)))
   self:cancel()
   self:sync_self(data)
 end
 
-function Presence:stop()
+function neocord:stop()
   self.log:debug("Disconnecting from Discord...")
   self.discord:disconnect(function()
     self.log:info("Disconnected from Discord")
@@ -1162,48 +1111,48 @@ function Presence:stop()
 end
 
 --------------------------------------------------
--- Presence event handlers
+-- neocord event handlers
 --------------------------------------------------
 
--- FocusGained events force-update the presence for the current buffer unless it's a quickfix window
-function Presence:handle_focus_gained()
+-- FocusGained events force-update the neocord for the current buffer unless it's a quickfix window
+function neocord:handle_focus_gained()
   self.log:debug("Handling FocusGained event...")
 
   -- Skip a potentially extraneous update call on initial startup if tmux is being used
   -- (See https://github.com/neovim/neovim/issues/14572)
   if next(self.last_activity) == nil and os.getenv("TMUX") then
-    self.log:debug("Skipping presence update for FocusGained event triggered by tmux...")
+    self.log:debug("Skipping neocord update for FocusGained event triggered by tmux...")
     return
   end
 
   if vim.bo.filetype == "qf" then
-    self.log:debug("Skipping presence update for quickfix window...")
+    self.log:debug("Skipping neocord update for quickfix window...")
     return
   end
 
   self:update()
 end
 
--- TextChanged events debounce current buffer presence updates
-function Presence:handle_text_changed()
+-- TextChanged events debounce current buffer neocord updates
+function neocord:handle_text_changed()
   self.log:debug("Handling TextChanged event...")
   self:update(nil, true)
 end
 
 -- VimLeavePre events unregister the leaving instance to all peers and sets activity for the first peer
-function Presence:handle_vim_leave_pre()
+function neocord:handle_vim_leave_pre()
   self.log:debug("Handling VimLeavePre event...")
   self:unregister_self()
   self:cancel()
 end
 
--- WinEnter events force-update the current buffer presence unless it's a quickfix window
-function Presence:handle_win_enter()
+-- WinEnter events force-update the current buffer neocord unless it's a quickfix window
+function neocord:handle_win_enter()
   self.log:debug("Handling WinEnter event...")
 
   vim.schedule(function()
     if vim.bo.filetype == "qf" then
-      self.log:debug("Skipping presence update for quickfix window...")
+      self.log:debug("Skipping neocord update for quickfix window...")
       return
     end
 
@@ -1211,49 +1160,49 @@ function Presence:handle_win_enter()
   end)
 end
 
--- WinLeave events cancel the current buffer presence
-function Presence:handle_win_leave()
+-- WinLeave events cancel the current buffer neocord
+function neocord:handle_win_leave()
   self.log:debug("Handling WinLeave event...")
 
   local current_window = vim.api.nvim_get_current_win()
 
   vim.schedule(function()
-    -- Avoid canceling presence when switching to a quickfix window
+    -- Avoid canceling neocord when switching to a quickfix window
     if vim.bo.filetype == "qf" then
-      self.log:debug("Not canceling presence due to switching to quickfix window...")
+      self.log:debug("Not canceling neocord due to switching to quickfix window...")
       return
     end
 
-    -- Avoid canceling presence when switching between windows
+    -- Avoid canceling neocord when switching between windows
     if current_window ~= vim.api.nvim_get_current_win() then
-      self.log:debug("Not canceling presence due to switching to a window within the same instance...")
+      self.log:debug("Not canceling neocord due to switching to a window within the same instance...")
       return
     end
 
-    self.log:debug("Canceling presence due to leaving window...")
+    self.log:debug("Canceling neocord due to leaving window...")
     self:cancel()
   end)
 end
 
--- BufEnter events force-update the presence for the current buffer unless it's a quickfix window
-function Presence:handle_buf_enter()
+-- BufEnter events force-update the neocord for the current buffer unless it's a quickfix window
+function neocord:handle_buf_enter()
   self.log:debug("Handling BufEnter event...")
 
   if vim.bo.filetype == "qf" then
-    self.log:debug("Skipping presence update for quickfix window...")
+    self.log:debug("Skipping neocord update for quickfix window...")
     return
   end
 
   self:update()
 end
 
--- BufAdd events force-update the presence for the current buffer unless it's a quickfix window
-function Presence:handle_buf_add()
+-- BufAdd events force-update the neocord for the current buffer unless it's a quickfix window
+function neocord:handle_buf_add()
   self.log:debug("Handling BufAdd event...")
 
   vim.schedule(function()
     if vim.bo.filetype == "qf" then
-      self.log:debug("Skipping presence update for quickfix window...")
+      self.log:debug("Skipping neocord update for quickfix window...")
       return
     end
 
@@ -1261,4 +1210,4 @@ function Presence:handle_buf_add()
   end)
 end
 
-return Presence
+return neocord
