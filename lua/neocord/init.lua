@@ -73,6 +73,7 @@ function neocord:setup(...)
     utils.set_option(self, "plugin_manager_text", "Managing plugins")
     utils.set_option(self, "reading_text", "Reading %s")
     utils.set_option(self, "workspace_text", "Working on %s")
+    utils.set_option(self, "terminal_text", "Using terminal")
     utils.set_option(self, "line_number_text", "Line %s out of %s")
     utils.set_option(self, "show_time", true)
     utils.set_option(self, "file_assets", {})
@@ -385,6 +386,7 @@ function neocord:get_status_text(filename)
     local file_explorer = file_explorers[vim.bo.filetype:match("[^%d]+")]
         or file_explorers[(filename or ""):match("[^%d]+")]
     local plugin_manager = plugin_managers[vim.bo.filetype]
+    local terminal = vim.api.nvim_get_mode()["mode"] == "t"
 
     if file_explorer then
         return self:format_status_text("file_explorer", file_explorer)
@@ -394,6 +396,10 @@ function neocord:get_status_text(filename)
 
     if not filename or filename == "" then
         return nil
+    end
+
+    if terminal then
+        return self:format_status_text("terminal", terminal)
     end
 
     if vim.bo.modifiable and not vim.bo.readonly then
