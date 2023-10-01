@@ -113,6 +113,7 @@ return {
     yaml = { "YAML", "yaml" },
     yml = { "YAML", "yaml" },
     zig = { "Zig", "zig" },
+    zon = { "Zig Object Notation", "zig" },
     zsh = { "Zsh script", "shell" },
 
     -- Named files
