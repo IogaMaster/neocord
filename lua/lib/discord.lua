@@ -122,10 +122,7 @@ function Discord:read_message(nonce, on_response, err, chunk)
 
             -- Check for a valid nonce value
             if response.nonce and response.nonce ~= vim.NIL and response.nonce ~= nonce then
-                local err_format = "Received unexpected nonce - %s (expected %s)"
-                local err_message = string.format(err_format, response.nonce, nonce)
-
-                return on_response(err_message)
+                return on_response()
             end
 
             on_response(nil, response)
