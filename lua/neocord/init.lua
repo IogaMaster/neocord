@@ -70,6 +70,7 @@ function neocord:setup(...)
     utils.set_option(self, "client_id", "1157438221865717891") -- Your discord application id
     utils.set_option(self, "logo", "auto")                     -- auto or url
     utils.set_option(self, "logo_tooltip", nil)                -- nil or string
+    utils.set_option(self, "main_image", "language")           -- "language" or "logo"
     utils.set_option(self, "editing_text", "Editing %s")
     utils.set_option(self, "file_explorer_text", "Browsing %s")
     utils.set_option(self, "git_commit_text", "Committing changes")
@@ -769,11 +770,12 @@ function neocord:update_for_buffer(buffer, should_debounce)
     if self.options.logo_tooltip ~= nil then
         distro_text = self.options.logo_tooltip
     end
+    local use_language_as_main_image = self.options.main_image == "language"
     local assets = {
-        large_image = utils.get_asset_url(icon),
-        large_text = file_text,
-        small_image = logo,
-        small_text = distro_text,
+        large_image = use_language_as_main_image and utils.get_asset_url(icon) or logo,
+        large_text = use_language_as_main_image and file_text or distro_text,
+        small_image = use_language_as_main_image and logo or utils.get_asset_url(icon),
+        small_text = use_language_as_main_image and distro_text or file_text,
     }
 
     local activity = {
