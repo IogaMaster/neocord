@@ -745,7 +745,6 @@ function neocord:update_for_buffer(buffer, should_debounce)
 
     -- Construct activity asset information
     local file_text = description or name
-    local neovim_image_text = self.options.neovim_image_text
     local logo
     if self.options.logo == "auto" then
         logo = utils.get_logo_url(utils.get_nvim_distro())

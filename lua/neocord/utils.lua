@@ -25,7 +25,7 @@ function utils.get_gui_info()
 end
 
 function utils.module_exists(module)
-    local present, presence = pcall(require, module)
+    local present = pcall(require, module)
 
     if not present then
         return false
