@@ -29,6 +29,8 @@
    </h1>
    <br>
 
+![image](https://github.com/IogaMaster/neocord/assets/67164465/2a6a2d6b-3f7f-4d88-8f6c-27ca6b7e4419)
+
 ## Features
 * Light and unobtrusive
 * Written in Pure Lua and is [highly configurable](#configuration)
