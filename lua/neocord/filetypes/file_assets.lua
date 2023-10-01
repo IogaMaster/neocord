@@ -49,7 +49,7 @@ return {
     java = { "Java", "java" },
     jinja = { "Jinja", "jinja" },
     jl = { "Julia", "julia" },
-    js = { "JavaScript", "javascript" },
+    js = { "JavaScript", "js" },
     json = { "JSON", "json" },
     jsx = { "JSX", "jsx" },
     ksh = { "KornShell script", "shell" },
