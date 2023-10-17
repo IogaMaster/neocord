@@ -350,7 +350,7 @@ function neocord:get_project_name(file_path)
   end
   if vim.v.shell_error ~= 0 or #project_path == 0 then
     local message_fmt = "Failed to get project name (error code %d): %s"
-    self.log:error(string.format(message_fmt, vim.v.shell_error, project_path))
+    self.log:debug(string.format(message_fmt, vim.v.shell_error, project_path))
     return nil
   end
 
