@@ -43,6 +43,7 @@ Use your favorite plugin manager
 ```lua
 { 
     'IogaMaster/neocord',
+    event = "VeryLazy"
 }
 ```
 * [packer.nvim](https://github.com/wbthomason/packer.nvim):
