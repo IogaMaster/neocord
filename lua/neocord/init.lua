@@ -132,6 +132,13 @@ function neocord:setup(...)
   return self
 end
 
+-- Helper function for setup from VimL call. Suppresses setup()'s
+-- return value, since it can't be translated to a native VimL object.
+function neocord.setup_no_return(options)
+  neocord.setup(options)
+  return nil
+end
+
 -- Normalize the OS name from uname
 function neocord.get_os_name(uname)
   if uname.sysname:find("Windows") then
