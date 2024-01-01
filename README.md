@@ -90,5 +90,31 @@ require("neocord").setup({
 })
 ```
 
+### VimL
+While the plugin is written in pure Lua, it can still be initialized using standard Vim commands (i.e. if you have an `init.vim` instead of `init.lua`).
+The available config options are as shown above; we just need to use some special Vim syntax around them:
+```vim
+call v:lua.require'neocord'.setup_no_return(#{
+    \ logo: 'auto',
+    \ })
+```
+Vim does not support null variables very well, so passing a value equivalent to `nil` does not seem to be possible with this method.
+To set an option to `nil`, use the syntax below, or refrain from setting that option explicitly (if its default is `nil`).
+
+Alternatively, use a Lua heredoc.
+This is slightly more verbose, but supports all Lua syntax.
+For example:
+```vim
+if has('nvim-0.5') || has('lua') 
+    lua << EOF
+    require('neocord').setup({
+        logo         = "auto",
+        logo_tooltip = nil,
+        -- etc...
+    })
+EOF
+endif
+```
+
 ## Special Thanks:
 - [vscord](https://github.com/leonardssh/vscord) for the [icons](https://github.com/leonardssh/vscord/tree/main/assets/icons).
