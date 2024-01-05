@@ -415,18 +415,20 @@ function neocord:get_status_text(filename)
     return nil
   end
 
-  if string.find(vim.bo.filetype, "git") then
-    return self:format_status_text("git_commit", filename)
-  elseif filename then
-    return self:format_status_text("editing", filename)
-  end
-
   if vim.bo.readonly then
     return self:format_status_text("reading", filename)
   end
 
   if terminal then
     return self:format_status_text("terminal", terminal)
+  end
+
+  if string.find(vim.bo.filetype, "git") then
+    return self:format_status_text("git_commit", filename)
+  end
+
+  if filename then
+    return self:format_status_text("editing", filename)
   end
 end
 
