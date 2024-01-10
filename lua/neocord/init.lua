@@ -19,6 +19,8 @@ local dashboards = require("neocord.filetypes.dashboards")
 local Discord = require("lib.discord")
 local utils = require("neocord.utils")
 
+local global_start = os.time()
+
 function neocord:setup(...)
   -- Support setup invocation via both dot and colon syntax.
   -- To maintain backwards compatibility, colon syntax will still
@@ -82,6 +84,7 @@ function neocord:setup(...)
   utils.set_option(self, "terminal_text", "Using terminal")
   utils.set_option(self, "line_number_text", "Line %s out of %s")
   utils.set_option(self, "show_time", true)
+  utils.set_option(self, "global_timer", false)
   utils.set_option(self, "file_assets", {})
   for name, asset in pairs(default_file_assets) do
     if not self.options.file_assets[name] then
@@ -736,10 +739,10 @@ function neocord:update_for_buffer(buffer, should_debounce)
     return
   end
 
-  local activity_set_at = os.time()
+  local activity_set_at = self.options.global_timer == 1 and global_start or os.time()
   -- If we shouldn't debounce and we trigger an activity, keep this value the same.
   -- Otherwise set it to the current time.
-  local relative_activity_set_at = should_debounce and self.last_activity.relative_set_at or os.time()
+  local relative_activity_set_at = self.options.global_timer == 1 and global_start or should_debounce and self.last_activity.relative_set_at or os.time()
 
   self.log:debug(string.format("Setting activity for %s...", buffer and #buffer > 0 and buffer or "unnamed buffer"))
 
