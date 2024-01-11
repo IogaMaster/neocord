@@ -85,6 +85,7 @@ function neocord:setup(...)
   utils.set_option(self, "line_number_text", "Line %s out of %s")
   utils.set_option(self, "show_time", true)
   utils.set_option(self, "global_timer", false)
+  utils.set_option(self, "project_detection_fallback_fn", nil)
   utils.set_option(self, "file_assets", {})
   for name, asset in pairs(default_file_assets) do
     if not self.options.file_assets[name] then
@@ -355,7 +356,11 @@ function neocord:get_project_name(file_path)
   project_path = vim.trim(project_path)
 
   if project_path:find("fatal.*") then
-    self.log:info("Not a git repository, skipping...")
+    self.log:info("Not a git repository, checking if fallback function defined...")
+    if self.options.project_detection_fallback_fn then
+      self.log:info("Fallback function defined, executing fallback function")
+      return self.options.project_detection_fallback_fn(file_path)
+    end
     return nil
   end
   if vim.v.shell_error ~= 0 or #project_path == 0 then
@@ -742,7 +747,9 @@ function neocord:update_for_buffer(buffer, should_debounce)
   local activity_set_at = self.options.global_timer == 1 and global_start or os.time()
   -- If we shouldn't debounce and we trigger an activity, keep this value the same.
   -- Otherwise set it to the current time.
-  local relative_activity_set_at = self.options.global_timer == 1 and global_start or should_debounce and self.last_activity.relative_set_at or os.time()
+  local relative_activity_set_at = self.options.global_timer == 1 and global_start
+    or should_debounce and self.last_activity.relative_set_at
+    or os.time()
 
   self.log:debug(string.format("Setting activity for %s...", buffer and #buffer > 0 and buffer or "unnamed buffer"))
 
