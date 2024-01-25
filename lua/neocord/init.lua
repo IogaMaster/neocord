@@ -340,6 +340,11 @@ end
 -- Gets the current project name
 function neocord:get_project_name(file_path)
   if not file_path then
+    self.log:info("Not a file, checking if fallback function defined...")
+    if self.options.project_detection_fallback_fn then
+      self.log:info("Fallback function defined, executing fallback function")
+      return self.options.project_detection_fallback_fn(file_path)
+    end
     return nil
   end
 
