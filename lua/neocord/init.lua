@@ -742,7 +742,9 @@ function neocord:update_for_buffer(buffer, should_debounce)
   local activity_set_at = self.options.global_timer == 1 and global_start or os.time()
   -- If we shouldn't debounce and we trigger an activity, keep this value the same.
   -- Otherwise set it to the current time.
-  local relative_activity_set_at = self.options.global_timer == 1 and global_start or should_debounce and self.last_activity.relative_set_at or os.time()
+  local relative_activity_set_at = self.options.global_timer == 1 and global_start
+    or should_debounce and self.last_activity.relative_set_at
+    or os.time()
 
   self.log:debug(string.format("Setting activity for %s...", buffer and #buffer > 0 and buffer or "unnamed buffer"))
 
@@ -773,7 +775,7 @@ function neocord:update_for_buffer(buffer, should_debounce)
   end
 
   local icon
-  if string.match(vim.bo.filetype, "git") then
+  if string.match(vim.bo.filetype, "git") or string.match(vim.bo.filetype, "fugitive") then
     icon = "git"
   else
     icon = asset_key
