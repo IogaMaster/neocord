@@ -785,7 +785,7 @@ function neocord:update_for_buffer(buffer, should_debounce)
   end
 
   local icon
-  if string.match(vim.bo.filetype, "git") then
+  if string.match(vim.bo.filetype, "git") or string.match(vim.bo.filetype, "fugitive") then
     icon = "git"
   else
     icon = asset_key
