@@ -80,6 +80,9 @@ function neocord:setup(...)
   utils.set_option(self, "dashboard_text", "Viewing %s Dashboard")
   utils.set_option(self, "reading_text", "Reading %s")
   utils.set_option(self, "workspace_text", "Working on %s")
+  utils.set_option(self, "idling_text", "Idling...")
+  utils.set_option(self, "idle_timeout", 300) -- in seconds
+  utils.set_option(self, "show_idle", true)
   utils.set_option(self, "blacklist", {})
   utils.set_option(self, "terminal_text", "Using terminal")
   utils.set_option(self, "line_number_text", "Line %s out of %s")
@@ -838,12 +841,11 @@ function neocord:update_for_buffer(buffer, should_debounce)
         self.workspaces[project_path].updated_at = activity_set_at
         activity.timestamps = self.options.show_time == 1
             and {
-              start = self.workspaces[project_path].started_at,
+              start = self.workspaces[project_path].updated_at,
             }
           or nil
       else
         self.workspaces[project_path] = {
-          started_at = activity_set_at,
           updated_at = activity_set_at,
         }
       end
@@ -898,7 +900,7 @@ neocord.update = neocord.discord_event(function(self, buffer, should_debounce)
   end
 
   -- Debounce Rich neocord updates (default to 10 seconds):
-  -- https://discord.com/developers/docs/rich-neocord/how-to#updating-neocord
+  -- https://discord.com/developers/docs/rich-presence/how-to#updating-neocord
   local last_updated_at = self.last_activity.set_at
   local debounce_timeout = self.options.debounce_timeout
   local should_skip = should_debounce
@@ -920,6 +922,47 @@ neocord.update = neocord.discord_event(function(self, buffer, should_debounce)
     end)
   end
 end)
+
+function neocord:idle_handler()
+  self.log:debug("Idle handler called...")
+
+  self.is_idling = true
+
+  -- Set simple idle activity (or clear activity if show_idle is disabled)
+  self.log:debug("Setting idle activity...")
+  self.discord:set_activity(self.options.show_idle and {
+    state = self:format_status_text("idling"),
+    assets = {
+      large_image = utils.get_asset_url("idle"),
+      large_text = "Idling...",
+    },
+  } or nil, function(err)
+    if err then
+      self.log:error(string.format("Failed to set idle activity in Discord: %s", err))
+      return
+    end
+
+    self.log:info("Set idle activity in Discord")
+  end)
+end
+
+function neocord:start_idle_timer(callback)
+  -- Get idle timeout in milliseconds
+  local idle_timeout = self.options.idle_timeout * 1000
+
+  self.idle_timer = vim.fn.timer_start(idle_timeout, callback)
+end
+
+function neocord:cancel_idle_timer()
+  vim.fn.timer_stop(self.idle_timer)
+  self.idle_timer = nil
+  if self.is_idling then
+    self.is_idling = false
+    self.exit_idle = true
+    global_start = os.time()
+    self:update()
+  end
+end
 
 --------------------------------------------------
 -- neocord peer-to-peer API
@@ -1219,6 +1262,18 @@ function neocord:handle_buf_add()
     end
 
     self:update()
+  end)
+end
+
+function neocord:handle_cursor_moved()
+  self.log:debug("Handling CursorMoved event...")
+
+  -- reset idle timer whenever the cursor moves
+  if self.idle_timer then
+    self:cancel_idle_timer()
+  end
+  self:start_idle_timer(function()
+    self:idle_handler()
   end)
 end
 

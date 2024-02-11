@@ -43,6 +43,7 @@ return {
   html = { "HTML", "html" },
   hx = { "Haxe", "haxe" },
   hxx = { "C++ header file", "cpp" },
+  idle = { "Idle", "idle" },
   ini = { "Configuration file", "config" },
   ino = { "Arduino", "arduino" },
   ipynb = { "Jupyter Notebook", "jupyter" },
