@@ -3,6 +3,7 @@ neocord.is_authorized = false
 neocord.is_authorizing = false
 neocord.is_connected = false
 neocord.is_connecting = false
+neocord.is_idling = false
 neocord.last_activity = {}
 neocord.peers = {}
 neocord.socket = vim.v.servername
@@ -961,7 +962,6 @@ function neocord:cancel_idle_timer()
   self.idle_timer = nil
   if self.is_idling then
     self.is_idling = false
-    self.exit_idle = true
     global_start = os.time()
     self:update()
   end
