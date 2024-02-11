@@ -930,7 +930,7 @@ function neocord:idle_handler()
 
   -- Set simple idle activity (or clear activity if show_idle is disabled)
   self.log:debug("Setting idle activity...")
-  self.discord:set_activity(self.options.show_idle and {
+  self.discord:set_activity(self.options.show_idle == 1 and {
     state = self:format_status_text("idling"),
     assets = {
       large_image = utils.get_asset_url("idle"),
@@ -954,6 +954,9 @@ function neocord:start_idle_timer(callback)
 end
 
 function neocord:cancel_idle_timer()
+  if not self.idle_timer then
+    return
+  end
   vim.fn.timer_stop(self.idle_timer)
   self.idle_timer = nil
   if self.is_idling then
@@ -962,6 +965,15 @@ function neocord:cancel_idle_timer()
     global_start = os.time()
     self:update()
   end
+end
+
+function neocord:reset_idle_timer()
+  if self.idle_timer then
+    self:cancel_idle_timer()
+  end
+  self:start_idle_timer(function()
+    self:idle_handler()
+  end)
 end
 
 --------------------------------------------------
@@ -1269,12 +1281,20 @@ function neocord:handle_cursor_moved()
   self.log:debug("Handling CursorMoved event...")
 
   -- reset idle timer whenever the cursor moves
-  if self.idle_timer then
-    self:cancel_idle_timer()
-  end
-  self:start_idle_timer(function()
-    self:idle_handler()
-  end)
+  self:reset_idle_timer()
+end
+
+function neocord:handle_term_enter()
+  self.log:debug("Handling TermEnter event...")
+
+  -- stop idle timer when user is in terminal
+  self:cancel_idle_timer()
+end
+
+function neocord:handle_term_leave()
+  self.log:debug("Handling TermLeave event...")
+
+  self:reset_idle_timer()
 end
 
 return neocord

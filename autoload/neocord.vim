@@ -13,6 +13,8 @@ function neocord#SetAutoCmds()
             autocmd UIEnter * lua package.loaded.neocord:handle_ui_enter()
             autocmd CursorMoved * lua package.loaded.neocord:handle_cursor_moved()
             autocmd CursorMovedI * lua package.loaded.neocord:handle_cursor_moved()
+            autocmd TermEnter * lua package.loaded.neocord:handle_term_enter()
+            autocmd TermLeave * lua package.loaded.neocord:handle_term_leave()
         endif
     augroup END
 endfunction
