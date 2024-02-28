@@ -379,6 +379,13 @@ end
 
 -- Get the name of the file for the given path
 function neocord.get_filename(path, path_separator)
+  -- fugitive path has two extra / at the end wich messes with this
+  -- so i just remove them.
+  -- sample path: fugitive:///path/to/.git//
+
+  if path:sub(-2, -1) == "//" then
+    path = path:sub(0, -3)
+  end
   return path:match(string.format("^.+%s(.+)$", path_separator))
 end
 
