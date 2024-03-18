@@ -247,7 +247,7 @@ function neocord:connect(on_done)
       self.log:warn("Failed to connect to Discord: " .. err .. " (is Discord running?)")
       return
     elseif err then
-      self.log:error("Failed to connect to Discord: " .. err)
+      self.log:debug("Failed to connect to Discord: " .. err)
       return
     end
 
