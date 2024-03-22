@@ -56,7 +56,7 @@ function neocord:setup(...)
   if self.os.name then
     local setup_message = self.os.is_wsl
         and string.format(setup_message_fmt .. " in WSL (%s)", self.os.name, vim.inspect(wsl_distro_name))
-      or string.format(setup_message_fmt, self.os.name)
+        or string.format(setup_message_fmt, self.os.name)
     self.log:debug(setup_message)
   else
     self.log:error(string.format("Unable to detect operating system: %s", vim.inspect(vim.loop.os_uname())))
@@ -68,11 +68,11 @@ function neocord:setup(...)
   end
 
   -- General options
-  utils.set_option(self, "auto_update", true) -- Your discord application id
+  utils.set_option(self, "auto_update", true)                -- Your discord application id
   utils.set_option(self, "client_id", "1157438221865717891") -- Your discord application id
-  utils.set_option(self, "logo", "auto") -- auto or url
-  utils.set_option(self, "logo_tooltip", nil) -- nil or string
-  utils.set_option(self, "main_image", "language") -- "language" or "logo"
+  utils.set_option(self, "logo", "auto")                     -- auto or url
+  utils.set_option(self, "logo_tooltip", nil)                -- nil or string
+  utils.set_option(self, "main_image", "language")           -- "language" or "logo"
   utils.set_option(self, "editing_text", "Editing %s")
   utils.set_option(self, "file_explorer_text", "Browsing %s")
   utils.set_option(self, "git_commit_text", "Committing changes")
@@ -85,6 +85,7 @@ function neocord:setup(...)
   utils.set_option(self, "line_number_text", "Line %s out of %s")
   utils.set_option(self, "show_time", true)
   utils.set_option(self, "global_timer", false)
+  utils.set_option(self, "project_detection_fallback_fn", nil)
   utils.set_option(self, "file_assets", {})
   for name, asset in pairs(default_file_assets) do
     if not self.options.file_assets[name] then
@@ -339,6 +340,11 @@ end
 -- Gets the current project name
 function neocord:get_project_name(file_path)
   if not file_path then
+    self.log:info("Not a file, checking if fallback function defined...")
+    if self.options.project_detection_fallback_fn then
+      self.log:info("Fallback function defined, executing fallback function")
+      return self.options.project_detection_fallback_fn(file_path)
+    end
     return nil
   end
 
@@ -349,13 +355,17 @@ function neocord:get_project_name(file_path)
   -- Might want to run this in a background process depending on performance
   local project_path_cmd = "git rev-parse --show-toplevel"
   project_path_cmd = file_path and string.format([[bash -c 'cd "%s" && %s']], file_path, project_path_cmd)
-    or project_path_cmd
+      or project_path_cmd
 
   local project_path = vim.fn.system(project_path_cmd)
   project_path = vim.trim(project_path)
 
   if project_path:find("fatal.*") then
-    self.log:info("Not a git repository, skipping...")
+    self.log:info("Not a git repository, checking if fallback function defined...")
+    if self.options.project_detection_fallback_fn then
+      self.log:info("Fallback function defined, executing fallback function")
+      return self.options.project_detection_fallback_fn(file_path)
+    end
     return nil
   end
   if vim.v.shell_error ~= 0 or #project_path == 0 then
@@ -408,7 +418,7 @@ end
 -- Get the status text for the current buffer
 function neocord:get_status_text(filename)
   local file_explorer = file_explorers[vim.bo.filetype:match("[^%d]+")]
-    or file_explorers[(filename or ""):match("[^%d]+")]
+      or file_explorers[(filename or ""):match("[^%d]+")]
   local plugin_manager = plugin_managers[vim.bo.filetype]
   local dashboard = dashboards[vim.bo.filetype]
   local terminal = vim.api.nvim_get_mode()["mode"] == "t"
@@ -619,19 +629,19 @@ function neocord:check_blacklist(buffer, parent_dirpath, project_dirpath)
     end
     -- Match parent either by Lua pattern or by plain string
     local is_parent_directory_blacklisted = parent_dirpath
-      and (
-        (parent_dirpath:match(val) == parent_dirpath or parent_dirname:match(val) == parent_dirname)
-        or (parent_dirpath:find(val, nil, true) or parent_dirname:find(val, nil, true))
-      )
+        and (
+          (parent_dirpath:match(val) == parent_dirpath or parent_dirname:match(val) == parent_dirname)
+          or (parent_dirpath:find(val, nil, true) or parent_dirname:find(val, nil, true))
+        )
     if is_parent_directory_blacklisted then
       return true
     end
     -- Match project either by Lua pattern or by plain string
     local is_project_directory_blacklisted = project_dirpath
-      and (
-        (project_dirpath:match(val) == project_dirpath or project_dirname:match(val) == project_dirname)
-        or (project_dirpath:find(val, nil, true) or project_dirname:find(val, nil, true))
-      )
+        and (
+          (project_dirpath:match(val) == project_dirpath or project_dirname:match(val) == project_dirname)
+          or (project_dirpath:find(val, nil, true) or project_dirname:find(val, nil, true))
+        )
     if is_project_directory_blacklisted then
       return true
     end
@@ -750,8 +760,8 @@ function neocord:update_for_buffer(buffer, should_debounce)
   -- If we shouldn't debounce and we trigger an activity, keep this value the same.
   -- Otherwise set it to the current time.
   local relative_activity_set_at = self.options.global_timer == 1 and global_start
-    or should_debounce and self.last_activity.relative_set_at
-    or os.time()
+      or should_debounce and self.last_activity.relative_set_at
+      or os.time()
 
   self.log:debug(string.format("Setting activity for %s...", buffer and #buffer > 0 and buffer or "unnamed buffer"))
 
@@ -847,7 +857,7 @@ function neocord:update_for_buffer(buffer, should_debounce)
             and {
               start = self.workspaces[project_path].started_at,
             }
-          or nil
+            or nil
       else
         self.workspaces[project_path] = {
           started_at = activity_set_at,
@@ -909,9 +919,9 @@ neocord.update = neocord.discord_event(function(self, buffer, should_debounce)
   local last_updated_at = self.last_activity.set_at
   local debounce_timeout = self.options.debounce_timeout
   local should_skip = should_debounce
-    and debounce_timeout
-    and last_updated_at
-    and os.time() - last_updated_at <= debounce_timeout
+      and debounce_timeout
+      and last_updated_at
+      and os.time() - last_updated_at <= debounce_timeout
 
   if should_skip then
     local message_fmt = "Last activity sent was within %d seconds ago, skipping..."
