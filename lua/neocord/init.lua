@@ -383,7 +383,7 @@ function neocord.get_filename(path, path_separator)
   -- so i just remove them.
   -- sample path: fugitive:///path/to/.git//
 
-  if path:sub(-2, -1) == "//" then
+  if path:sub(-2, -1) == string.rep(path_separator, 2) then
     path = path:sub(0, -3)
   end
   return path:match(string.format("^.+%s(.+)$", path_separator))
