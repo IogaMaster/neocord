@@ -348,7 +348,11 @@ function neocord:get_project_name(file_path)
   -- TODO: Only checks for a git repository, could add more checks here
   -- Might want to run this in a background process depending on performance
   local project_path_cmd = "git rev-parse --show-toplevel"
-  project_path_cmd = string.format([[bash -c 'cd "%s" && %s']], file_path, project_path_cmd)
+  if self.os.name == "windows" then
+    project_path_cmd = string.format([[cmd /c "cd "%s" && %s"]], file_path, project_path_cmd)
+  else
+    project_path_cmd = string.format([[bash -c 'cd "%s" && %s']], file_path, project_path_cmd)
+  end
 
   local project_path = vim.fn.system(project_path_cmd)
   project_path = vim.trim(project_path)
