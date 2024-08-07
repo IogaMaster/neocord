@@ -23,7 +23,7 @@
     neorocks,
     ...
   }: let
-    name = "plugin-template.nvim"; # TODO: Choose a name
+    name = "neocord";
 
     plugin-overlay = import ./nix/plugin-overlay.nix {
       inherit name self;
@@ -130,7 +130,7 @@
         };
 
         devShell = pkgs.nvim-nightly-tests.overrideAttrs (oa: {
-          name = "devShell"; # TODO: Choose a name
+          name = "neocord";
           inherit (pre-commit-check) shellHook;
           buildInputs =
             self.checks.${system}.pre-commit-check.enabledPackages
