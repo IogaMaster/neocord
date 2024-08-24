@@ -661,13 +661,21 @@ function neocord:get_buttons(buffer, parent_dirpath)
   -- Retrieve the git repository URL
   local repo_url
   if parent_dirpath then
-    -- Escape quotes in the file path
-    local path = parent_dirpath:gsub([["]], [[\"]])
-    local git_url_cmd = "git config --get remote.origin.url"
-    local cmd = path and string.format([[cd "%s" && %s]], path, git_url_cmd) or git_url_cmd
+    local git_url_cmd = { "git", "config", "--get", "remote.origin.url" }
+    local ok, res = pcall(function()
+      return vim
+        .system(git_url_cmd, {
+          cwd = parent_dirpath,
+          text = true,
+        })
+        :wait()
+    end)
+    if not ok or res.code ~= 0 then
+      return nil
+    end
 
     -- Trim and coerce empty string value to null
-    repo_url = vim.trim(vim.fn.system(cmd))
+    repo_url = vim.trim(res.stdout)
     repo_url = repo_url ~= "" and repo_url or nil
   end
 
