@@ -342,28 +342,32 @@ function neocord:get_project_name(file_path)
     return nil
   end
 
-  -- Escape quotes in the file path
-  file_path = file_path:gsub([["]], [[\"]])
-
   -- TODO: Only checks for a git repository, could add more checks here
   -- Might want to run this in a background process depending on performance
-  local project_path_cmd = "git rev-parse --show-toplevel"
-  if self.os.name == "windows" then
-    project_path_cmd = string.format([[cmd /c "cd "%s" && %s"]], file_path, project_path_cmd)
-  else
-    project_path_cmd = string.format([[bash -c 'cd "%s" && %s']], file_path, project_path_cmd)
+  local project_path_cmd = { "git", "rev-parse", "--show-toplevel" }
+  local ok, res = pcall(function()
+    return vim
+      .system(project_path_cmd, {
+        cwd = file_path,
+        text = true,
+      })
+      :wait()
+  end)
+  if not ok then
+    self.log:debug(string.format("Failed to run git: %s", res))
+    return nil
   end
 
-  local project_path = vim.fn.system(project_path_cmd)
+  local project_path = res.stdout
   project_path = vim.trim(project_path)
 
-  if project_path:find("fatal.*") then
+  if res.stderr:find("fatal.*") then
     self.log:info("Not a git repository, skipping...")
     return nil
   end
-  if vim.v.shell_error ~= 0 or #project_path == 0 then
+  if res.code ~= 0 or #project_path == 0 then
     local message_fmt = "Failed to get project name (error code %d): %s"
-    self.log:debug(string.format(message_fmt, vim.v.shell_error, project_path))
+    self.log:debug(string.format(message_fmt, res.code, project_path))
     return nil
   end
 
