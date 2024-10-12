@@ -36,7 +36,7 @@ function neocord:setup(...)
   self.options = options
 
   -- Initialize logger
-  utils.set_option(self, "log_level", "error", false)
+  utils.set_option(self, "log_level", nil, false)
   self.log = log:init({ level = options.log_level })
 
   -- Get operating system information including path separator
