@@ -1,5 +1,7 @@
 return {
   -- File Extensions
+  c3 = { "C3", "c3" },
+  c3i = { "C3 Static Library", "c3" },
   ahk = { "Autohotkey", "ahk" },
   applescript = { "Applescript", "applescript" },
   astro = { "Astro", "astro" },
