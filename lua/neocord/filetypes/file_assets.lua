@@ -45,6 +45,7 @@ return {
   gvy = { "Groovy", "groovy" },
   gy = { "Groovy", "groovy" },
   h = { "C header file", "c" },
+  hh = { "C++ header file", "cpp" },
   hpp = { "C++ header file", "cpp" },
   hs = { "Haskell", "haskell" },
   html = { "HTML", "html" },
