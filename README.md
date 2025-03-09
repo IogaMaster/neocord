@@ -80,10 +80,8 @@ $ sudo apt install socat
 ```
 
 Here's a script for starting socat and wsl-relay on startup
-> Note: Replace `youusername` and `yourusergroup` with your username and usergroup
-> Note: You will need to edit your /etc/suoers file to allow your user to run socat without a password
 
-~/.scripts/discord-ipc
+> ~/.scripts/discord-ipc
 ```bash
 pidof socat > /dev/null 2>&1
 
@@ -93,7 +91,11 @@ if [ $? -ne 0 ]; then
 fi
 ```
 
-~/.config/systemd/user/discordipc.service
+> [!NOTE]
+> Replace `youusername` and `yourusergroup` with your username and usergroup
+> You will need to edit your /etc/suoers file to allow your user to run socat without a password
+
+> ~/.config/systemd/user/discordipc.service
 ```
 Unit]
 Description=Starts discord ipc
@@ -111,7 +113,6 @@ Enable the service
 $ systemctl --user enable discordipc
 $ systemctl --user start discordipc
 ```
-
 
 ## Configuration
 Configuration is not necessary for Rich Presence to work. But for those that want to override the default configs, the following options are available to configure in either Lua or VimL.
