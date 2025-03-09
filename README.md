@@ -58,6 +58,61 @@ Plug 'IogaMaster/neocord'
 #### Notes
 * Requires [Neovim 0.5](https://github.com/neovim/neovim/releases/tag/v0.5.0) or higher
 
+## WSL
+
+You will need [wsl-relay](https://github.com/Lexicality/wsl-relay)
+
+Clone and build wsl-relay you will need go installed on WSL
+```bash
+$ git clone https://github.com/Lexicality/wsl-relay.git
+$ cd wsl-relay
+$ GOOS=windows go build -o /mnt/c/Users/<myuser>/go/bin/wsl-relay.exe
+```
+
+Create a symlink to wsl-relay
+```bash
+$ sudo ln -s /mnt/c/Users/<myuser>/go/bin/wsl-relay.exe /usr/local/bin/wsl-relay.exe
+```
+
+Installing socat for creating a unix socket
+```bash
+$ sudo apt install socat
+```
+
+Here's a script for starting socat and wsl-relay on startup
+> Note: Replace `youusername` and `yourusergroup` with your username and usergroup
+> Note: You will need to edit your /etc/suoers file to allow your user to run socat without a password
+
+~/.scripts/discord-ipc
+```bash
+pidof socat > /dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+    sudo socat UNIX-LISTEN:/var/run/discord-ipc-0,user=youruser,group=yourgroup,umask=007,fork \
+        EXEC:"wsl-relay.exe --close-pipe --pipe-closes --pipe //./pipe/discord-ipc-0"
+fi
+```
+
+~/.config/systemd/user/discordipc.service
+```
+Unit]
+Description=Starts discord ipc
+
+[Service]
+ExecStart=/usr/bin/env bash /home/youruser/.scripts/discord-ipc
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+```
+
+Enable the service
+```bash
+$ systemctl --user enable discordipc
+$ systemctl --user start discordipc
+```
+
+
 ## Configuration
 Configuration is not necessary for Rich Presence to work. But for those that want to override the default configs, the following options are available to configure in either Lua or VimL.
 
