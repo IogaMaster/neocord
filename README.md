@@ -97,7 +97,7 @@ fi
 
 > ~/.config/systemd/user/discordipc.service
 ```
-Unit]
+[Unit]
 Description=Starts discord ipc
 
 [Service]
