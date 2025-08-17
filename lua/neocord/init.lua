@@ -802,12 +802,15 @@ function neocord:update_for_buffer(buffer, should_debounce)
     small_text = use_language_as_main_image and distro_text or file_text,
   }
 
+  local buttons = self:get_buttons(buffer, parent_dirpath)
+
   local activity = {
     state = status_text,
     assets = assets,
     timestamps = self.options.show_time == 1 and {
       start = relative_activity_set_at,
     } or nil,
+    buttons = buttons or nil,
   }
 
   -- Get the current line number and line count if the user has set the enable_line_number option
