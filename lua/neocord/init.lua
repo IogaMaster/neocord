@@ -82,6 +82,7 @@ function neocord:setup(...)
   utils.set_option(self, "workspace_text", "Working on %s")
   utils.set_option(self, "blacklist", {})
   utils.set_option(self, "terminal_text", "Using terminal")
+  utils.set_option(self, "task_management_text", "Managing Tasks")
   utils.set_option(self, "line_number_text", "Line %s out of %s")
   utils.set_option(self, "show_time", true)
   utils.set_option(self, "global_timer", false)
@@ -432,12 +433,16 @@ function neocord:get_status_text(filename)
     return self:format_status_text("reading", filename)
   end
 
-  if terminal then
-    return self:format_status_text("terminal", terminal)
+  if string.find(vim.bo.filetype, "git") then
+      return self:format_status_text("git_commit", filename)
   end
 
-  if string.find(vim.bo.filetype, "git") then
-    return self:format_status_text("git_commit", filename)
+  if string.find(vim.bo.filetype, "todo") or string.find("todo.txt", filename) or string.find("done.txt", filename) then
+    return self:format_status_text("task_management", filename)
+  end
+
+  if terminal then
+      return self:format_status_text("terminal", terminal)
   end
 
   if filename then
