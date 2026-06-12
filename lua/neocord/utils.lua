@@ -18,7 +18,7 @@ end
 
 function utils.get_gui_info()
   local info = vim.api.nvim_get_chan_info(1).client
-  if info.type == "ui" then
+  if info ~= nil and info.type == "ui" then
     return info.name
   end
   return nil
